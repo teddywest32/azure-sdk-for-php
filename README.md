@@ -10,16 +10,16 @@ Microsoft Azure tables, blobs, queues, service bus (queues and topics), service 
   * create and delete tables
   * create, query, insert, update, merge, and delete entities
   * batch operations
-  * REST API Version: 2012-02-12
+  * REST API Version: see https://github.com/Azure/azure-storage-php
 * Blobs
   * create, list, and delete containers, work with container metadata and permissions, list blobs in container
   * create block and page blobs (from a stream or a string), work with blob blocks and pages, delete blobs
   * work with blob properties, metadata, leases, snapshot a blob
-  * REST API Version: 2012-02-12
+  * REST API Version: see https://github.com/Azure/azure-storage-php
 * Storage Queues
   * create, list, and delete queues, and work with queue metadata and properties
   * create, get, peek, update, delete messages
-  * REST API Version: 2012-02-12
+  * REST API Version: see https://github.com/Azure/azure-storage-php
 * Service Bus
   * Queues: create, list and delete queues; send, receive, unlock and delete messages
   * Topics: create, list, and delete topics; create, list, and delete subscriptions; send, receive, unlock and delete messages; create, list, and delete rules
@@ -58,49 +58,29 @@ To get the source code from GitHub, type
 
 > **Note**
 > 
-> The PHP Client Libraries for Microsoft Azure have a dependency on the [HTTP_Request2](http://pear.php.net/package/HTTP_Request2), [Mail_mime](http://pear.php.net/package/Mail_mime), and [Mail_mimeDecode](http://pear.php.net/package/Mail_mimeDecode) PEAR packages. The recommended way to resolve these dependencies is to install them using the [PEAR package manager](http://pear.php.net/manual/en/installation.php).
+> The PHP Client Libraries for Microsoft Azure have a dependency on the [HTTP_Request2](http://pear.php.net/package/HTTP_Request2), [Mail_mime](http://pear.php.net/package/Mail_mime), and [Mail_mimeDecode](http://pear.php.net/package/Mail_mimeDecode) PEAR packages. The recommended way to resolve these dependencies is to install them using the [Composer package manager](http://getcomposer.org).
 
 
 ##Install via Composer
 
-1. Create a file named **composer.json** in the root of your project and add the following code to it:
+* Create a file named **composer.json** in the root of your project and add the following code to it:
 ```json
     {
-      "require": {
-        "microsoft/windowsazure": "*"
-      },      
-      "repositories": [
-        {
-          "type": "pear",
-          "url": "http://pear.php.net"
-        }
-      ],
-      "minimum-stability": "dev"
+        "require": {        
+            "microsoft/windowsazure": "^0.4"
+        }  
     }
 ```
-2. Download **[composer.phar](http://getcomposer.org/composer.phar)** in your project root.
 
-3. Open a command prompt and execute this in your project root
+* Download **[composer.phar](http://getcomposer.org/composer.phar)** in your project root.
+
+* Open a command prompt and execute this in your project root
 
     php composer.phar install
 
   > **Note**
   >
   > On Windows, you will also need to add the Git executable to your PATH environment variable.
-
-
-##Install as a PEAR package
-
-To install the PHP Client Libraries for Microsoft Azure as a PEAR package, follow these steps:
-
-1. [Install PEAR](http://pear.php.net/manual/en/installation.getting.php).
-2. Set-up the Microsoft Azure PEAR channel:
-
-    pear channel-discover pear.windowsazure.com
-3. Install the PEAR package:
-
-    pear install pear.windowsazure.com/WindowsAzure-0.4.1
-
 
 # Usage
 
@@ -110,12 +90,6 @@ There are four basic steps that have to be performed before you can make a call 
 
 * First, include the autoloader script:
 
-  If installed via PEAR or Git:
-
-    require_once "WindowsAzure/WindowsAzure.php"; 
-
-  If installed via Composer:
-    
     require_once "vendor/autoload.php"; 
   
 * Include the namespaces you are going to use.
@@ -196,8 +170,8 @@ try {
 To add an entity to a table, create a new **Entity** object and pass it to **TableRestProxy->insertEntity**. Note that when you create an entity you must specify a `PartitionKey` and `RowKey`. These are the unique identifiers for an entity and are values that can be queried much faster than other entity properties. The system uses `PartitionKey` to automatically distribute the table’s entities over many storage nodes.
 
 ```PHP
-use WindowsAzure\Table\Models\Entity;
-use WindowsAzure\Table\Models\EdmType;
+use MicrosoftAzure\Storage\Table\Models\Entity;
+use MicrosoftAzure\Storage\Table\Models\EdmType;
 
 $entity = new Entity();
 $entity->setPartitionKey("pk");
@@ -424,7 +398,14 @@ try {
 ```
 
 ## Service Bus Queues
-
+The current PHP Service Bus APIs only support ACS connection strings. You need to use PowerShell to create a new ACS Service Bus namespace at the present time.  
+First, make sure you have Azure PowerShell installed, then in a PowerShell command prompt, run 
+```
+Add-AzureAccount # this will sign you in
+New-AzureSBNamespace -CreateACSNamespace $true -Name 'mytestbusname' -Location 'West US' -NamespaceType 'Messaging'
+```
+If it is sucessful, you will get the connection string in the PowerShell output. If you get connection errors with it and the conection string looks like Endpoint=sb://..., change it to **Endpoint=https://...**
+ 
 ### Create a Queue
 
 ```PHP
@@ -638,7 +619,7 @@ echo "Operation status: ".$status->getStatus()."<br />";
 ```
 
 ##Media Services
-
+ 
 ###Create new asset with file
 
 To create an asset with a file you need to create an empty asset, create access policy with write permission, create a locator joining your asset and access policy, perform actual upload and generate file info.
@@ -713,7 +694,7 @@ Erase entities with methods like “deleteAsset”, “deleteAccessPolicy”, �
 
 Also you could get linked entities with methods “getAssetLocators”, “getAssetParentAssets”, “getAssetStorageAccount”, “getLocatorAccessPolicy”, “getJobTasks” and etc. passing the entity identifier or entity data model object with non-empty identifier as a parameter.
 
-The complete list of all methods available you could find in [IMediaServices](WindowsAzure/MediaServices/Internal/IMediaServices.php) interface.
+The complete list of all methods available you could find in [IMediaServices](src/MediaServices/Internal/IMediaServices.php) interface.
 
 **For more examples please see the [Microsoft Azure PHP Developer Center](http://www.windowsazure.com/en-us/develop/php)**
 
